@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>盤點差異填寫工具 · MLB / DX</title>
+<style>
+:root{
+  --cream:#eef1f5;--paper:#ffffff;--row2:#f6f8fb;--line:#e2e7ee;
+  --coral:#e8604a;--teal:#1f9d93;--mustard:#e3a51d;--petrol:#188077;--plum:#8a5a86;
+  --ink:#2c3440;--sub:#7a8593;--navy:#26333f;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
+  background:var(--cream);color:var(--ink);line-height:1.5;padding-bottom:90px}
+a{color:inherit}
+
+header{background:linear-gradient(135deg,#14312e,#188077);padding:20px 22px;color:#fff}
+.wrap{max-width:1180px;margin:0 auto}
+.brand{font-size:12px;font-weight:800;letter-spacing:2px;color:#bfe3de}
+h1{font-size:22px;font-weight:800;margin-top:3px}
+.hsub{font-size:13px;color:#cfe6e2;margin-top:3px}
+
+.setup{max-width:1180px;margin:0 auto;padding:18px 22px}
+.frow{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:16px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12.5px;font-weight:700;color:var(--sub)}
+.field select,.field input[type=text],.field input[type=date]{
+  border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:14px;background:#fff;color:var(--ink);min-width:220px;font-family:inherit}
+
+.drop{display:block;border:2px dashed #c3ccd6;border-radius:16px;background:#fff;padding:26px 20px;text-align:center;
+  cursor:pointer;transition:.15s}
+.drop:hover,.drop.over{border-color:var(--petrol);background:#f2fbf9}
+.drop .ic{font-size:34px}
+.drop .t{font-size:15px;font-weight:700;margin-top:6px}
+.drop .s{font-size:12.5px;color:var(--sub);margin-top:4px}
+.drop input{display:none}
+
+.help{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-top:14px;font-size:13px;color:var(--sub)}
+.help b{color:var(--petrol)}
+.help ol{margin:6px 0 0 18px} .help li{margin:2px 0}
+
+/* summary bar */
+.sumbar{position:sticky;top:0;z-index:30;background:rgba(238,241,245,.94);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);padding:10px 0;display:none}
+.sumin{max-width:1180px;margin:0 auto;padding:0 22px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 13px;font-size:13px}
+.stat b{font-size:16px;font-weight:800}
+.stat.ok b{color:var(--teal)} .stat.warn b{color:var(--coral)}
+.prog{flex:1;min-width:140px;height:9px;background:#dfe5ec;border-radius:6px;overflow:hidden;min-width:120px}
+.prog i{display:block;height:100%;background:var(--teal);width:0;transition:.3s}
+.tabs{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:12.5px;cursor:pointer;color:var(--sub)}
+.tab.active{background:var(--petrol);color:#fff;border-color:var(--petrol);font-weight:700}
+
+main{max-width:1180px;margin:0 auto;padding:16px 22px}
+
+/* 數量統整 */
+.qtybar{display:none;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:12px}
+.qtybar.on{display:block}
+.qhd{font-size:12px;font-weight:800;letter-spacing:1.4px;color:var(--petrol);margin-bottom:9px}
+.qgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.qcard{border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--row2)}
+.qcard.hi{background:#f2fbf9;border-color:#bfe3de}
+.qcard .ql{display:block;font-size:12px;font-weight:700;color:var(--sub)}
+.qcard b{display:block;font-size:23px;font-weight:800;line-height:1.25;margin-top:1px}
+.qcard b.neg{color:#c0392b} .qcard b.pos{color:#147d74}
+.qcard .qs{display:block;font-size:11px;color:var(--sub)}
+.qnote{font-size:11.5px;color:var(--sub);margin-top:8px}
+@media(max-width:760px){.qgrid{grid-template-columns:repeat(2,1fr)}}
+
+/* line card (single-row) */
+.line{background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 12px;margin-bottom:6px;
+  display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px}
+/* 同 STYLE 有反向差異 → 可能是尺寸/顏色互換（未填原因時提示） */
+.line.cand{border-color:#d9c3d7;background:#fdfafd;box-shadow:inset 3px 0 0 var(--plum)}
+.line.done{border-color:#bfe3de;background:#fff;box-shadow:inset 3px 0 0 var(--teal)}
+.line.miss{box-shadow:inset 3px 0 0 var(--coral)}
+.line.flash{animation:fl 1.1s ease-out}
+@keyframes fl{0%{box-shadow:0 0 0 3px rgba(138,90,134,.75)}100%{box-shadow:0 0 0 3px rgba(138,90,134,0)}}
+.cchip{background:rgba(138,90,134,.13);color:#7a4b76;border:1px solid rgba(138,90,134,.3);
+  border-radius:7px;padding:1px 7px;font-size:11px;font-weight:800;white-space:nowrap}
+.cchip b{cursor:pointer;text-decoration:underline;font-weight:800}
+.cchip b:hover{color:var(--coral)}
+.linfo{flex:1 1 320px;min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:4px 9px}
+.linfo .no{font-size:11px;color:var(--sub);font-weight:700}
+.linfo .code{font-size:13px;font-weight:800}
+.linfo .desc{font-size:11.5px;color:var(--sub);flex:1;min-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c{font-size:11.5px;color:var(--sub)}
+.c b{color:var(--ink);font-weight:700}
+.var{font-weight:800;padding:2px 9px;border-radius:7px;font-size:12.5px}
+.var.neg{background:rgba(232,96,74,.13);color:#c0392b}
+.var.pos{background:rgba(31,157,147,.15);color:#147d74}
+
+.rsel{flex:0 0 auto;width:184px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.5px;background:#fff;font-family:inherit}
+.rsel.unset{border-color:#e0b34d;background:#fffdf5}
+
+.photos{flex:0 0 auto;display:flex;align-items:center;gap:5px}
+.photoreq{font-size:11px;color:var(--coral);font-weight:700;display:none;white-space:nowrap}
+.photoreq.show{display:inline}
+.pbtn{border:1px dashed #c3ccd6;border-radius:8px;width:34px;height:34px;display:grid;place-items:center;
+  cursor:pointer;color:var(--sub);font-size:16px;background:#fff}
+.pbtn:hover{border-color:var(--petrol);color:var(--petrol)}
+.pbtn input{display:none}
+.thumb{position:relative;width:34px;height:34px;border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+.thumb .x{position:absolute;top:0;right:0;background:rgba(0,0,0,.6);color:#fff;width:14px;height:14px;
+  border-radius:50%;display:grid;place-items:center;font-size:10px;cursor:pointer;line-height:1}
+
+/* 其他備註 / 對消項次：換行到該列下方 */
+.rnote{flex-basis:100%;order:9;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.5px;font-family:inherit;resize:vertical;min-height:34px;display:none}
+.rnote.show{display:block}
+.rnote.need{border-color:var(--coral);background:#fff6f5}
+.rwrap{flex-basis:100%;order:9;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rlbl{font-size:11.5px;font-weight:700;color:var(--sub)}
+.rhint{font-size:11px;color:var(--sub)}
+.roffset{max-width:340px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.5px;font-family:inherit;display:none}
+.roffset.show{display:block}
+.roffset.need{border-color:var(--coral);background:#fff6f5}
+.rbad{display:none;font-size:12px;font-weight:700;color:#a33a28;background:#fff6f5;border:1px solid #f3c9c2;
+  border-radius:8px;padding:6px 10px}
+.rbad.show{display:block}
+
+/* 正負對消稽核 */
+.audit{display:none;border-radius:12px;padding:12px 15px;margin-bottom:12px;border:1px solid var(--line);background:#fff}
+.audit.on{display:block}
+.audit.bad{background:#fff6f5;border-color:#f3c9c2}
+.audit.good{background:#f2fbf9;border-color:#bfe3de}
+.audit .ah{font-size:12.5px;font-weight:800}
+.audit.good .ah{color:#136f67} .audit.bad .ah{color:#a33a28}
+.audit ul{margin:7px 0 0 18px}
+.audit li{font-size:12px;color:#a33a28;margin:2px 0}
+.audit .grp{font-size:11.5px;color:var(--sub);margin-top:7px}
+.audit .grp b{color:var(--ink)}
+
+/* export bar */
+.exbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);
+  padding:12px 22px;display:none;z-index:40;box-shadow:0 -4px 16px rgba(0,0,0,.05)}
+.exin{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.exmsg{font-size:13px;color:var(--sub)}
+.exbtns{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.btn{border:none;border-radius:10px;padding:11px 22px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn.go{background:var(--petrol);color:#fff}
+.btn.go:disabled{background:#c3ccd6;cursor:not-allowed}
+.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--sub);padding:10px 15px;font-size:13px;font-weight:700}
+.btn.ghost:hover{border-color:var(--coral);color:var(--coral)}
+
+/* lightbox */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;place-items:center;z-index:100;padding:30px}
+.lb.on{display:grid}
+.lb img{max-width:92vw;max-height:88vh;border-radius:8px}
+.lb .close{position:absolute;top:18px;right:24px;color:#fff;font-size:32px;cursor:pointer}
+
+.empty{text-align:center;color:var(--sub);padding:50px 20px;font-size:14px}
+@media(max-width:760px){.line{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">MLB / DX · RETAIL OPERATION</div>
+    <h1>盤點差異填寫工具</h1>
+    <div class="hsub">上傳盤點公司的 Variance Report by Barcode → 逐筆填寫差異原因與照片 → 匯出檔案 E-mail 回傳</div>
+  </div>
+</header>
+
+<div class="setup" id="setup">
+  <div class="frow">
+    <div class="field">
+      <label>店櫃</label>
+      <select id="store">
+        <option value="">— 請選擇店櫃 —</option>
+        <option>T01 MLB 忠孝旗艦店</option>
+        <option>T02 MLB 南西新光3館</option>
+        <option>T03 MLB 台北101</option>
+        <option>T06 MLB 台中中友</option>
+        <option>T08 MLB 漢神巨蛋</option>
+        <option>T10 MLB 板橋大遠百</option>
+        <option>T11 MLB 台南南紡</option>
+        <option>T12 MLB 台茂購物中心</option>
+        <option>T13 MLB 台南新光三越</option>
+        <option>T14 MLB 中壢大江</option>
+        <option>T17 LALAPORT 南港</option>
+        <option>T18 LALAPORT 台中</option>
+        <option>T19 MLB 漢神洲際</option>
+        <option>TU1 MLB 台中三井</option>
+        <option>TU2 MLB 林口三井</option>
+        <option>TU3 MLB 華泰名品城</option>
+        <option>D01 DX 新光A11</option>
+        <option>D03 DX 台中新光三越</option>
+        <option>D04 DX 遠東GARDEN CITY</option>
+        <option>D05 DX 漢神洲際</option>
+        <option value="__other__">其他（自行輸入）</option>
+      </select>
+    </div>
+    <div class="field" id="storeOtherWrap" style="display:none">
+      <label>店櫃名稱（自行輸入）</label>
+      <input type="text" id="storeOther" placeholder="例：T99 MLB 某某店">
+    </div>
+    <div class="field">
+      <label>盤點日期</label>
+      <input type="date" id="stdate">
+    </div>
+  </div>
+
+  <label class="drop" id="drop">
+    <div class="ic">📄</div>
+    <div class="t">上傳 Variance Report by Barcode（.csv）</div>
+    <div class="s">點此選擇檔案，或直接把檔案拖曳到這裡</div>
+    <input type="file" id="file" accept=".csv,text/csv">
+  </label>
+
+  <div class="help">
+    <b>使用步驟</b>
+    <ol>
+      <li>選擇「店櫃」與「盤點日期」。</li>
+      <li>上傳盤點公司提供的 <b>Variance Report by Barcode</b>（CSV）— 系統會自動列出所有差異（VAR≠0）品項。</li>
+      <li>逐筆選擇<b>差異原因</b>；選「其他」需自行填寫原因。<b>漏盤 / 多盤</b>請務必<b>附上照片</b>（同貨號所有數量）。</li>
+      <li>原因會依差異正負自動限制：<b>確定短少 / 漏盤</b>只能選在<b>負差異</b>，<b>確定有多 / 多盤</b>只能選在<b>正差異</b>（不符的選項會鎖住）。</li>
+      <li>選<b>尺寸/顏色正負對消</b>時，只能從<b>同 STYLE 且反向差異</b>的品項下拉選擇對消對象；系統會即時稽核每個 STYLE 的對消<b>合計是否為 0</b>。</li>
+      <li>全部填完 → 點右下角<b>匯出檔案</b> → JSON 會自動下載、並跳出列印視窗 → 目的地選<b>另存為 PDF</b> → 將 <b>JSON ＋ PDF 兩個檔 E-mail 回傳給 Logistics（Silvia）</b>。</li>
+    </ol>
+  </div>
+</div>
+
+<div class="sumbar" id="sumbar">
+  <div class="sumin">
+    <div class="stat"><b id="stTotal">0</b> 差異筆數</div>
+    <div class="stat ok"><b id="stDone">0</b> 已填</div>
+    <div class="stat warn"><b id="stLeft">0</b> 待填</div>
+    <div class="prog"><i id="progBar"></i></div>
+    <div class="tabs" id="tabs">
+      <span class="tab active" data-f="all">全部</span>
+      <span class="tab" data-f="todo">待填</span>
+      <span class="tab" data-f="cand" data-base="可對消" title="同 STYLE 有反向差異的品項（可能是尺寸/顏色互換）">可對消</span>
+      <span class="tab" data-f="loss">盤損（短少）</span>
+      <span class="tab" data-f="gain">盤盈（溢存）</span>
+      <span class="tab" data-f="miscount">盤點錯誤（漏盤/多盤）</span>
+      <span class="tab" data-f="offset">正負對消</span>
+      <span class="tab" data-f="other">其他</span>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="qtybar" id="qtybar">
+    <div class="qhd">數量統整</div>
+    <div class="qgrid">
+      <div class="qcard"><span class="ql">原差異數量</span><b id="qRaw">0</b><span class="qs">報告全部差異合計</span></div>
+      <div class="qcard"><span class="ql">盤盈數量</span><b id="qGain" class="pos">0</b><span class="qs">確定有多（消錯帳）</span></div>
+      <div class="qcard"><span class="ql">盤損數量</span><b id="qLoss" class="neg">0</b><span class="qs">確定短少（遺失/超賣）</span></div>
+      <div class="qcard hi"><span class="ql">實際差異</span><b id="qNet">0</b><span class="qs">盤盈 ＋ 盤損</span></div>
+    </div>
+    <div class="qnote" id="qNote"></div>
+  </div>
+  <div class="audit" id="audit"></div>
+  <div id="list"></div>
+</main>
+
+<div class="exbar" id="exbar">
+  <div class="exin">
+    <span class="exmsg" id="exmsg"></span>
+    <div class="exbtns">
+      <button class="btn ghost" id="clearBtn" title="清除所有已選的差異原因、備註與照片（差異清單保留）">🗑 清除重填</button>
+      <button class="btn ghost" id="resetBtn" title="回到最初畫面，重新上傳 CSV">↺ 重新上傳</button>
+      <button class="btn ghost" id="pdfBtn" style="display:none" title="列印視窗被取消、或要重存報告時使用">🖨 再存一次報告 PDF</button>
+      <button class="btn go" id="exportBtn">匯出檔案 ⬇</button>
+    </div>
+  </div>
+</div>
+
+<div class="lb" id="lb"><span class="close">×</span><img id="lbimg" alt=""></div>
+
+<script>
+const R_LOSS   = "確定短少（遺失/超賣）";
+const R_GAIN   = "確定有多（消錯帳）";
+const R_MISS   = "漏盤（實際較多）";
+const R_DOUBLE = "多盤（實際較少）";
+const R_OFFSET = "尺寸/顏色正負對消";
+const R_OTHER  = "其他";
+const REASONS = [R_LOSS, R_GAIN, R_MISS, R_DOUBLE, R_OFFSET, R_OTHER];
+const PHOTO_REASONS = [R_MISS, R_DOUBLE]; // 建議/需附照片
+const NEG_REASONS = [R_LOSS, R_MISS];     // 只能用在負差異（實盤少於系統）
+const POS_REASONS = [R_GAIN, R_DOUBLE];   // 只能用在正差異（實盤多於系統）
+let LINES = [];   // {no,barcode,code,desc,size,color,price,soh,stk,varq,vara,reason,note,offset,photos:[]}
+let FILTER = "all";
+
+// 差異原因與差異正負號的合法組合
+function reasonOK(r, vq){
+  if(NEG_REASONS.includes(r)) return vq<0;
+  if(POS_REASONS.includes(r)) return vq>0;
+  return true;   // 正負對消 / 其他：不限號
+}
+// STYLE = Item code 第一段（3AWJB0444-50BKS-M → 3AWJB0444）
+function styleOf(code){ return String(code||"").split("-")[0].trim().toUpperCase(); }
+// 可對消的候選：同 STYLE、反向差異、且不是自己
+function offsetCands(l){
+  const st=styleOf(l.code);
+  return LINES.filter(x=>x.no!==l.no && styleOf(x.code)===st && (x.varq>0)!==(l.varq>0));
+}
+function lineByNo(no){ return LINES.find(l=>String(l.no)===String(no)); }
+
+/* 正負對消稽核：以 STYLE 分組（+2 對 −1−1 這種多筆對消也算得對） */
+function offsetAudit(){
+  const marked=LINES.filter(l=>l.reason===R_OFFSET);
+  const groups={}, problems=[];
+  marked.forEach(l=>{ const s=styleOf(l.code); (groups[s]=groups[s]||[]).push(l); });
+  Object.keys(groups).sort().forEach(s=>{
+    const g=groups[s], sum=g.reduce((a,l)=>a+l.varq,0);
+    if(g.length<2) problems.push({style:s, kind:"lonely",
+      msg:`STYLE ${s} 只有 1 筆標為正負對消（項次 ${g[0].no}）→ 同 STYLE 找不到相抵的品項`});
+    else if(sum!==0) problems.push({style:s, kind:"sum",
+      msg:`STYLE ${s} 對消 ${g.length} 筆（項次 ${g.map(l=>l.no).join("、")}）數量合計 ${sg(sum)} ≠ 0`});
+    g.forEach(l=>{
+      const t=lineByNo(l.offset);
+      if(!l.offset) return;                                     // 未指認 → 已由「待填」把關
+      if(!t) problems.push({style:s, kind:"ref", msg:`項次 ${l.no} 指認的對消項次 ${l.offset} 不存在`});
+      else if(styleOf(t.code)!==s) problems.push({style:s, kind:"ref",
+        msg:`項次 ${l.no} 指認的項次 ${t.no} 不是同一個 STYLE（${styleOf(t.code)}）`});
+      else if(t.reason!==R_OFFSET) problems.push({style:s, kind:"ref",
+        msg:`項次 ${l.no} 指認了項次 ${t.no}，但項次 ${t.no} 尚未標成「${R_OFFSET}」`});
+    });
+  });
+  return {groups, problems, lines:marked.length,
+          styles:Object.keys(groups).length, ok:problems.length===0};
+}
+function isDone(l){
+  if(!l.reason) return false;
+  if(l.reason===R_OTHER)  return !!l.note.trim();
+  if(l.reason===R_OFFSET) return !!(l.offset && l.offset.trim());
+  return true;
+}
+
+// ---------- CSV parse (handle BOM + quoted fields) ----------
+function parseCSV(text){
+  if(text.charCodeAt(0)===0xFEFF) text=text.slice(1);
+  const rows=[]; let row=[], cur="", q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(q){
+      if(ch==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; }
+      else cur+=ch;
+    }else{
+      if(ch==='"') q=true;
+      else if(ch===','){ row.push(cur); cur=""; }
+      else if(ch==='\r'){}
+      else if(ch==='\n'){ row.push(cur); rows.push(row); row=[]; cur=""; }
+      else cur+=ch;
+    }
+  }
+  if(cur.length||row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r=>r.some(c=>String(c).trim()!==""));
+}
+function findCol(hdr, names){
+  const H=hdr.map(h=>String(h).trim().toLowerCase().replace(/\s+/g,""));
+  for(const n of names){
+    const k=n.toLowerCase().replace(/\s+/g,"");
+    const i=H.indexOf(k); if(i>=0) return i;
+  }
+  return -1;
+}
+function num(x){ const n=parseFloat(String(x).replace(/,/g,"")); return isNaN(n)?0:n; }
+
+function loadCSV(text){
+  const rows=parseCSV(text);
+  if(!rows.length){ alert("檔案是空的，請確認。"); return; }
+  const hdr=rows[0];
+  const ci={
+    barcode:findCol(hdr,["Item barcode","barcode"]),
+    code:findCol(hdr,["Item code","code"]),
+    desc:findCol(hdr,["DESCRIPTION","description"]),
+    size:findCol(hdr,["SIZE"]),
+    color:findCol(hdr,["COLOR","COLOUR"]),
+    price:findCol(hdr,["PRICE"]),
+    soh:findCol(hdr,["SOH QTY.","SOH QTY","SOH"]),
+    stk:findCol(hdr,["STK QTY.","STK QTY","STK"]),
+    varq:findCol(hdr,["VAR QTY.","VAR QTY","VARIANCE","VARIANCE QTY"]),
+    vara:findCol(hdr,["VAR Amount","VARIANCE AMOUNT","VAR AMT"])
+  };
+  if(ci.code<0||ci.varq<0){
+    alert("找不到必要欄位（Item code / VAR QTY）。請確認上傳的是 Variance Report by Barcode。");
+    return;
+  }
+  LINES=[]; let no=0;
+  for(let r=1;r<rows.length;r++){
+    const row=rows[r]; if(!row[ci.code]) continue;
+    const vq=Math.round(num(row[ci.varq]));
+    if(vq===0) continue;   // 只留差異
+    no++;
+    LINES.push({
+      no, barcode:(row[ci.barcode]||"").trim(), code:(row[ci.code]||"").trim(),
+      desc:(row[ci.desc]||"").trim(), size:(row[ci.size]||"").trim(),
+      color:(row[ci.color]||"").trim(), price:num(row[ci.price]),
+      soh:Math.round(num(row[ci.soh])), stk:Math.round(num(row[ci.stk])),
+      varq:vq, vara:num(row[ci.vara]),
+      reason:"", note:"", offset:"", photos:[]
+    });
+  }
+  if(!LINES.length){ alert("這份報告沒有任何差異（VAR 全為 0）。"); return; }
+  render();
+  document.getElementById("sumbar").style.display="block";
+  document.getElementById("exbar").style.display="block";
+  document.getElementById("sumbar").scrollIntoView({behavior:"smooth"});
+}
+
+// ---------- render ----------
+function render(){
+  const list=document.getElementById("list");
+  const shown=LINES.filter(l=>{
+    if(FILTER==="todo")     return !isDone(l);
+    if(FILTER==="cand")     return offsetCands(l).length>0;
+    if(FILTER==="loss")     return l.reason===R_LOSS;
+    if(FILTER==="gain")     return l.reason===R_GAIN;
+    if(FILTER==="miscount") return PHOTO_REASONS.includes(l.reason);
+    if(FILTER==="offset")   return l.reason===R_OFFSET;
+    if(FILTER==="other")    return l.reason===R_OTHER;
+    return true;
+  });
+  if(!shown.length){ list.innerHTML='<div class="empty">此篩選沒有品項。</div>'; updateStats(); return; }
+  list.innerHTML = shown.map(l=>lineHtml(l)).join("");
+  updateStats();
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function lineHtml(l){
+  const i=LINES.indexOf(l);
+  const vcls=l.varq<0?"neg":"pos";
+  const done=isDone(l);
+  const needPhoto=PHOTO_REASONS.includes(l.reason);
+  const miss=needPhoto && !l.photos.length;
+  const cands=offsetCands(l);                 // 同 STYLE 反向差異 → 可對消候選
+  const cand=cands.length && !l.reason;       // 尚未填原因才提示
+  // 差異原因：與差異正負號不符的選項直接鎖起來（灰掉並註明原因）
+  const badHint = l.varq<0 ? "（僅正差異可選）" : "（僅負差異可選）";
+  const opts='<option value="">— 選擇差異原因 —</option>'+REASONS.map(r=>{
+    const ok=reasonOK(r,l.varq);
+    return `<option value="${esc(r)}"${l.reason===r?" selected":""}${ok?"":" disabled"}>${esc(r)}${ok?"":badHint}</option>`;
+  }).join("");
+  const thumbs=l.photos.map((p,pi)=>`<div class="thumb"><img src="${p}" data-full="${p}"><span class="x" data-del="${i}:${pi}">×</span></div>`).join("");
+  let extra="";
+  if(l.reason===R_OTHER){
+    extra=`<textarea class="rnote show ${!l.note.trim()?'need':''}" data-i="${i}" placeholder="請填寫差異原因（選「其他」時必填）">${esc(l.note)}</textarea>`;
+  }else if(l.reason===R_OFFSET){
+    // 對消對象：只列同 STYLE 且反向差異的品項
+    if(!cands.length){
+      extra=`<div class="rwrap"><div class="rbad show">⚠ 同 STYLE（${esc(styleOf(l.code))}）沒有反向差異的品項 → 不能用「${R_OFFSET}」，請改選其他原因</div></div>`;
+    }else{
+      const sel=cands.map(c=>`<option value="${c.no}"${String(l.offset)===String(c.no)?" selected":""}>#${c.no} ${esc(c.code)}　${sg(c.varq)}</option>`).join("");
+      extra=`<div class="rwrap"><span class="rlbl">對消對象（同 STYLE ${esc(styleOf(l.code))}）</span>`
+        + `<select class="roffset show ${!(l.offset&&String(l.offset).trim())?'need':''}" data-i="${i}">`
+        + `<option value="">— 請選擇相抵的品項 —</option>${sel}</select></div>`;
+    }
+  }
+  const cchip = cand
+    ? `<span class="cchip" title="同 STYLE（${esc(styleOf(l.code))}）有反向差異，可能是尺寸/顏色互換；點項次可跳到該筆">⇄ 可對消 ${cands.map(c=>`<b data-jump="${c.no}">#${c.no}</b>`).join(" ")}</span>`
+    : "";
+  return `<div class="line ${cand?'cand':''} ${done?'done':''} ${miss?'miss':''}" data-i="${i}">
+    <div class="linfo">
+      <span class="no">#${l.no}</span>
+      <span class="code">${esc(l.code)}</span>
+      <span class="desc">${esc(l.desc)}</span>
+      ${cchip}
+      <span class="c">系統 <b>${l.soh}</b></span>
+      <span class="c">實盤 <b>${l.stk}</b></span>
+      <span class="var ${vcls}">差異 ${l.varq>0?'+':''}${l.varq}</span>
+    </div>
+    <select class="rsel ${l.reason?'':'unset'}" data-i="${i}">${opts}</select>
+    <div class="photos">
+      <span class="photoreq ${needPhoto?'show':''}" title="漏盤/多盤請附同貨號所有數量的照片">⚠ 附照片</span>
+      ${thumbs}
+      <label class="pbtn">＋<input type="file" accept="image/*" multiple data-i="${i}"></label>
+    </div>
+    ${extra}
+  </div>`;
+}
+function sg(n){ return (n>0?'+':'')+n; }
+// 數量統整：原差異 / 盤盈 / 盤損 / 實際差異（只算盤盈+盤損）
+function qtyStats(){
+  const q=(f)=>LINES.filter(f).reduce((s,l)=>s+l.varq,0);
+  const c=(f)=>LINES.filter(f).length;
+  const gain=q(l=>l.reason===R_GAIN), loss=q(l=>l.reason===R_LOSS);
+  return {
+    raw:q(()=>true), gain, loss, net:gain+loss,
+    cGain:c(l=>l.reason===R_GAIN), cLoss:c(l=>l.reason===R_LOSS),
+    cMis:c(l=>PHOTO_REASONS.includes(l.reason)),  qMis:q(l=>PHOTO_REASONS.includes(l.reason)),
+    cOff:c(l=>l.reason===R_OFFSET),               qOff:q(l=>l.reason===R_OFFSET),
+    cOther:c(l=>l.reason===R_OTHER),              qOther:q(l=>l.reason===R_OTHER),
+    cTodo:c(l=>!l.reason),                        qTodo:q(l=>!l.reason)
+  };
+}
+function updateStats(){
+  const total=LINES.length;
+  const done=LINES.filter(isDone).length;
+  const q=qtyStats();
+  document.getElementById("qtybar").classList.toggle("on", total>0);
+  document.getElementById("qRaw").textContent=sg(q.raw);
+  document.getElementById("qGain").textContent=sg(q.gain);
+  document.getElementById("qLoss").textContent=sg(q.loss);
+  const qn=document.getElementById("qNet");
+  qn.textContent=sg(q.net);
+  qn.className = q.net<0?"neg":(q.net>0?"pos":"");
+  document.getElementById("qNote").textContent =
+    `不計入實際差異：盤點錯誤（漏盤/多盤）${q.cMis} 筆 ${sg(q.qMis)} · 正負對消 ${q.cOff} 筆 ${sg(q.qOff)} · 其他 ${q.cOther} 筆 ${sg(q.qOther)}`
+    + (q.cTodo? ` · 未填原因 ${q.cTodo} 筆 ${sg(q.qTodo)}` : "");
+  document.getElementById("stTotal").textContent=total;
+  document.getElementById("stDone").textContent=done;
+  document.getElementById("stLeft").textContent=total-done;
+  document.getElementById("progBar").style.width=(total?done/total*100:0)+"%";
+  const missPhoto=LINES.filter(l=>PHOTO_REASONS.includes(l.reason)&&!l.photos.length).length;
+  // 可對消頁籤帶上筆數（括號內為尚未填原因的筆數）
+  const candAll=LINES.filter(l=>offsetCands(l).length>0).length;
+  const candTodo=LINES.filter(l=>offsetCands(l).length>0 && !l.reason).length;
+  const ctab=document.querySelector('.tab[data-f="cand"]');
+  if(ctab) ctab.textContent = candAll? `可對消 ${candAll}${candTodo?`（待處理 ${candTodo}）`:""}` : "可對消";
+  const au=renderAudit();
+  document.getElementById("exmsg").textContent =
+    (total-done>0? `尚有 ${total-done} 筆未填原因`
+     : (au.problems.length? `全部已填，但正負對消稽核有 ${au.problems.length} 項問題`
+     : (missPhoto? `全部已填，但 ${missPhoto} 筆漏盤/多盤未附照片`:"✓ 全部已填寫完成")));
+  document.getElementById("exportBtn").disabled = (total-done>0);
+}
+// 跳到某個項次（若被篩選隱藏，先切回「全部」）
+function jumpTo(no){
+  const find=()=>[...document.querySelectorAll(".line")].find(el=>LINES[+el.dataset.i].no===Number(no));
+  let el=find();
+  if(!el){ setFilter("all"); el=find(); }
+  if(!el) return;
+  el.scrollIntoView({behavior:"smooth",block:"center"});
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+  setTimeout(()=>el.classList.remove("flash"),1200);
+}
+// 正負對消稽核面板
+function renderAudit(){
+  const au=offsetAudit(), box=document.getElementById("audit");
+  box.classList.toggle("on", au.lines>0);
+  box.classList.toggle("bad", !au.ok);
+  box.classList.toggle("good", au.ok);
+  if(!au.lines){ box.innerHTML=""; return au; }
+  const grp=Object.keys(au.groups).sort().map(s=>{
+    const g=au.groups[s], sum=g.reduce((a,l)=>a+l.varq,0);
+    return `<b>${esc(s)}</b>（${g.map(l=>"#"+l.no+" "+sg(l.varq)).join("、")}）合計 ${sg(sum)}${sum===0&&g.length>1?" ✓":" ✗"}`;
+  }).join("　·　");
+  box.innerHTML = (au.ok
+      ? `<div class="ah">✓ 正負對消稽核通過：${au.styles} 組 STYLE、${au.lines} 筆，各組同 STYLE 且合計 0</div>`
+      : `<div class="ah">⚠ 正負對消稽核未通過（${au.problems.length} 項）</div><ul>${au.problems.map(p=>`<li>${esc(p.msg)}</li>`).join("")}</ul>`)
+    + `<div class="grp">分組：${grp}</div>`
+    + `<div class="grp">規則：對消必須<b>同一個 STYLE</b> 且該 STYLE 的對消<b>數量合計為 0</b>；多筆對消（如 +2 對 −1、−1）把同 STYLE 每一筆都標成對消即可。</div>`;
+  return au;
+}
+
+// ---------- image resize ----------
+function resizeImg(file, cb){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=1200; let{width:w,height:h}=img;
+      if(w>max||h>max){ const s=max/Math.max(w,h); w=Math.round(w*s); h=Math.round(h*s); }
+      const cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+      cv.getContext("2d").drawImage(img,0,0,w,h);
+      cb(cv.toDataURL("image/jpeg",0.72));
+    };
+    img.src=rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+
+// ---------- events ----------
+document.getElementById("store").addEventListener("change",e=>{
+  document.getElementById("storeOtherWrap").style.display = e.target.value==="__other__"?"flex":"none";
+});
+const drop=document.getElementById("drop"), fileInput=document.getElementById("file");
+["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
+drop.addEventListener("drop",e=>{ const f=e.dataTransfer.files[0]; if(f) readFile(f); });
+fileInput.addEventListener("change",e=>{ const f=e.target.files[0]; if(f) readFile(f); });
+function readFile(f){
+  const rd=new FileReader();
+  rd.onload=()=>loadCSV(rd.result);
+  rd.readAsText(f,"utf-8");
+}
+
+// delegated events on list
+document.getElementById("list").addEventListener("change",e=>{
+  const sel=e.target.closest(".rsel");
+  if(sel){
+    const i=+sel.dataset.i, l=LINES[i], r=sel.value;
+    // 限制①：原因必須與差異正負號相符
+    if(r && !reasonOK(r,l.varq)){
+      alert(`項次 ${l.no} 差異為 ${sg(l.varq)}，不能選「${r}」。\n\n`
+        + `· ${R_LOSS} / ${R_MISS} → 只能用在【負差異】（實盤少於系統）\n`
+        + `· ${R_GAIN} / ${R_DOUBLE} → 只能用在【正差異】（實盤多於系統）`);
+      sel.value=l.reason||""; return;
+    }
+    // 限制②：正負對消必須同 STYLE 且有反向差異的品項
+    if(r===R_OFFSET && !offsetCands(l).length){
+      alert(`項次 ${l.no}（STYLE ${styleOf(l.code)}）在這份報告中找不到「同 STYLE 且反向差異」的品項，\n無法用「${R_OFFSET}」，請改選其他原因。`);
+    }
+    l.reason=r;
+    if(r!==R_OFFSET) l.offset="";     // 換原因就清掉舊的對消對象
+    render(); return;
+  }
+  // 對消對象下拉
+  const of=e.target.closest("select.roffset");
+  if(of){
+    const i=+of.dataset.i, l=LINES[i];
+    l.offset=of.value;
+    const t=lineByNo(of.value);
+    if(t && t.reason!==R_OFFSET){
+      if(confirm(`要同時把項次 ${t.no}（${t.code}　${sg(t.varq)}）也標成「${R_OFFSET}」並互相指認嗎？\n`
+               + `（正負對消都是成對的，一起標稽核才會通過）`)){
+        t.reason=R_OFFSET; t.offset=String(l.no);
+      }
+    }
+    render(); return;
+  }
+  const ph=e.target.closest("input[type=file]");
+  if(ph){ const i=+ph.dataset.i; const files=[...ph.files];
+    let pend=files.length;
+    files.forEach(f=>resizeImg(f,d=>{ LINES[i].photos.push(d); if(--pend===0) render(); }));
+  }
+});
+document.getElementById("list").addEventListener("input",e=>{
+  const ta=e.target.closest(".rnote"); if(!ta) return;
+  const i=+ta.dataset.i;
+  LINES[i].note=ta.value;
+  // live update without full re-render (keep focus)
+  ta.classList.toggle("need", !ta.value.trim());
+  updateStats();
+  ta.closest(".line").classList.toggle("done", isDone(LINES[i]));
+});
+document.getElementById("list").addEventListener("click",e=>{
+  // 點「可對消 #n」→ 跳到該筆並閃一下
+  const jump=e.target.closest("[data-jump]");
+  if(jump){ jumpTo(jump.dataset.jump); return; }
+  const del=e.target.closest("[data-del]");
+  if(del){ const [i,pi]=del.dataset.del.split(":").map(Number); LINES[i].photos.splice(pi,1); render(); return; }
+  const img=e.target.closest(".thumb img");
+  if(img){ document.getElementById("lbimg").src=img.dataset.full; document.getElementById("lb").classList.add("on"); }
+});
+document.getElementById("lb").addEventListener("click",()=>document.getElementById("lb").classList.remove("on"));
+document.getElementById("tabs").addEventListener("click",e=>{
+  const t=e.target.closest(".tab"); if(!t) return;
+  setFilter(t.dataset.f);
+});
+function setFilter(f){
+  FILTER=f;
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active", x.dataset.f===f));
+  render();
+}
+
+// ---------- 清除 / 重新上傳 ----------
+document.getElementById("clearBtn").addEventListener("click",()=>{
+  const filled=LINES.filter(l=>l.reason||l.note||l.offset||l.photos.length).length;
+  if(!filled){ alert("目前沒有已填寫的內容。"); return; }
+  if(!confirm(`確定清除全部已填寫內容？\n（${filled} 筆的差異原因、備註與照片都會清空；上傳的差異清單保留，可重新填寫）`)) return;
+  LINES.forEach(l=>{ l.reason=""; l.note=""; l.offset=""; l.photos=[]; });
+  setFilter("all");
+  document.getElementById("sumbar").scrollIntoView({behavior:"smooth",block:"start"});
+});
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  if(LINES.length && !confirm("確定重新上傳？\n（目前已填寫的內容會全部清除）")) return;
+  LINES=[]; FILTER="all";
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active", x.dataset.f==="all"));
+  document.getElementById("list").innerHTML="";
+  document.getElementById("sumbar").style.display="none";
+  document.getElementById("exbar").style.display="none";
+  document.getElementById("pdfBtn").style.display="none";
+  document.getElementById("file").value="";
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+
+// ---------- export ----------
+function dl(blob, name){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+}
+function reasonText(l){
+  if(!l.reason) return '<span style="color:#c0392b">（未填）</span>';
+  if(l.reason===R_OTHER)  return esc(l.reason)+"："+esc(l.note||"");
+  if(l.reason===R_OFFSET) return esc(l.reason)+"（對消項次 "+esc(l.offset||"-")+"）";
+  return esc(l.reason);
+}
+function buildReport(store, stdate, code){
+  const cnt=r=>LINES.filter(l=>l.reason===r).length;
+  const lossN=cnt(R_LOSS), gainN=cnt(R_GAIN), offsetN=cnt(R_OFFSET), otherN=cnt(R_OTHER);
+  const miscountN=LINES.filter(l=>PHOTO_REASONS.includes(l.reason)).length;
+  const P=[];
+  P.push('<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">');
+  P.push('<meta name="viewport" content="width=device-width,initial-scale=1">');
+  P.push('<title>盤差報告_'+esc(code)+'_'+esc(stdate)+'</title><style>');
+  P.push('*{box-sizing:border-box;margin:0;padding:0}');
+  P.push('body{font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:#222;padding:24px;font-size:13px}');
+  P.push('h1{font-size:19px;margin-bottom:4px}.meta{color:#555;font-size:13px;margin-bottom:3px}');
+  P.push('.sum{margin:12px 0;font-size:13px}.sum b{font-size:15px}');
+  P.push('table{width:100%;border-collapse:collapse;margin-top:8px}');
+  P.push('th,td{border:1px solid #bbb;padding:5px 7px;font-size:12px;text-align:center}');
+  P.push('th{background:#188077;color:#fff}td.l{text-align:left}');
+  P.push('tr:nth-child(even) td{background:#f4f7f9}');
+  P.push('.neg{color:#c0392b;font-weight:700}.pos{color:#147d74;font-weight:700}');
+  P.push('tr.tot td{background:#e8f2f1!important;font-weight:800;font-size:12.5px}');
+  P.push('.qt{width:auto;max-width:660px;margin-top:10px}.qt th{background:#26333f}.qt td{font-size:14px;font-weight:800;padding:7px 12px}');
+  P.push('.qt th{font-size:12px;font-weight:700;padding:5px 12px}.qt td.hi{background:#e8f2f1}');
+  P.push('.qnote{font-size:11.5px;color:#777;margin-top:5px}');
+  P.push('h2{font-size:15px;margin:22px 0 8px;border-left:5px solid #188077;padding-left:8px}');
+  P.push('.pg{margin-bottom:16px}.pg .hd{font-weight:700;font-size:13px;margin-bottom:5px}');
+  P.push('.imgs{display:flex;flex-wrap:wrap;gap:8px}.imgs img{width:180px;height:180px;object-fit:cover;border:1px solid #ccc;border-radius:6px;cursor:zoom-in}');
+  P.push('.pbar{position:fixed;top:14px;right:16px}');
+  P.push('.pbtn{background:#188077;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}');
+  P.push('.hint{font-size:12px;color:#888;font-weight:400}');
+  P.push('#rlb{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;place-items:center;z-index:999;cursor:zoom-out}#rlb.on{display:grid}#rlb img{max-width:94vw;max-height:92vh;border-radius:6px}');
+  P.push('@media print{.noprint{display:none}#rlb{display:none!important}@page{size:A4;margin:12mm}body{padding:0}.imgs img{width:150px;height:150px}th,td{font-size:10.5px;padding:4px 5px}th,td:nth-child(2){white-space:nowrap}.qt td{font-size:13px}tr,.pg{break-inside:avoid}h2{break-after:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}');
+  P.push('</style></head><body>');
+  P.push('<div class="pbar noprint"><button class="pbtn" onclick="window.print()">🖨 存成 PDF</button></div>');
+  P.push('<h1>MLB / DX 期終盤點差異報告</h1>');
+  P.push('<div class="meta">店櫃：<b>'+esc(store)+'</b></div>');
+  P.push('<div class="meta">盤點日期：'+esc(stdate)+'</div>');
+  P.push('<div class="sum">差異筆數 <b>'+LINES.length+'</b> 筆（盤損（短少） '+lossN+' · 盤盈（溢存） '+gainN+' · 盤點錯誤（漏盤/多盤） '+miscountN+' · 正負對消 '+offsetN+' · 其他 '+otherN+'）</div>');
+  const q=qtyStats();
+  P.push('<h2>數量統整</h2>');
+  P.push('<table class="qt"><tr><th>原差異數量</th><th>盤盈數量</th><th>盤損數量</th><th>實際差異（盤盈＋盤損）</th></tr>');
+  P.push('<tr><td>'+sg(q.raw)+'</td><td class="pos">'+sg(q.gain)+'</td><td class="neg">'+sg(q.loss)+'</td>'+
+         '<td class="hi '+(q.net<0?'neg':(q.net>0?'pos':''))+'">'+sg(q.net)+'</td></tr></table>');
+  P.push('<div class="qnote">不計入實際差異：盤點錯誤（漏盤/多盤） '+q.cMis+' 筆 '+sg(q.qMis)+' · 正負對消 '+q.cOff+' 筆 '+sg(q.qOff)+' · 其他 '+q.cOther+' 筆 '+sg(q.qOther)+'</div>');
+  P.push('<h2>差異明細</h2>');
+  P.push('<table><tr><th>項次</th><th>Item code</th><th>品名</th><th>SIZE</th><th>COLOR</th><th>系統</th><th>實盤</th><th>差異</th><th>差異原因</th></tr>');
+  LINES.forEach(l=>{
+    const vc=l.varq<0?'neg':'pos';
+    P.push('<tr><td>'+l.no+'</td><td class="l">'+esc(l.code)+'</td><td class="l">'+esc(l.desc)+'</td>'+
+      '<td>'+esc(l.size||'-')+'</td><td>'+esc(l.color||'-')+'</td><td>'+l.soh+'</td><td>'+l.stk+'</td>'+
+      '<td class="'+vc+'">'+(l.varq>0?'+':'')+l.varq+'</td><td class="l">'+reasonText(l)+'</td></tr>');
+  });
+  const tSoh=LINES.reduce((s,l)=>s+l.soh,0), tStk=LINES.reduce((s,l)=>s+l.stk,0);
+  P.push('<tr class="tot"><td colspan="5">合計（'+LINES.length+' 筆）</td><td>'+tSoh+'</td><td>'+tStk+'</td>'+
+         '<td class="'+(q.raw<0?'neg':'pos')+'">'+sg(q.raw)+'</td><td></td></tr>');
+  P.push('</table>');
+  // 註：正負對消稽核只在工具畫面上呈現（明細的「差異原因」已註明對消項次），報告不另列一節（使用者定案）
+  const withPhoto=LINES.filter(l=>l.photos.length);
+  if(withPhoto.length){
+    P.push('<h2>照片附錄 <span class="hint">（點圖可放大確認數量）</span></h2>');
+    withPhoto.forEach(l=>{
+      P.push('<div class="pg"><div class="hd">項次 '+l.no+'　'+esc(l.code)+'（'+esc(l.color||'')+' / '+esc(l.size||'')+'）</div><div class="imgs">');
+      l.photos.forEach(p=>P.push('<img src="'+p+'">'));
+      P.push('</div></div>');
+    });
+  }
+  P.push('<div id="rlb"><img alt=""></div>');
+  P.push('<script>(function(){var o=document.getElementById("rlb"),im=o.querySelector("img");document.addEventListener("click",function(e){if(e.target.matches(".imgs img")){im.src=e.target.src;o.classList.add("on");}else if(e.target===o||e.target===im){o.classList.remove("on");}});document.addEventListener("keydown",function(e){if(e.key==="Escape")o.classList.remove("on");});})();<\/script>');
+  P.push('</body></html>');
+  return P.join("");
+}
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const storeSel=document.getElementById("store").value;
+  const store = storeSel==="__other__"? document.getElementById("storeOther").value.trim() : storeSel;
+  const stdate=document.getElementById("stdate").value;
+  if(!store){ alert("請先選擇（或填寫）店櫃。"); document.getElementById("store").focus(); return; }
+  if(!stdate){ alert("請填寫盤點日期。"); document.getElementById("stdate").focus(); return; }
+  const au=offsetAudit();
+  if(au.problems.length && !confirm(`正負對消稽核未通過（${au.problems.length} 項）：\n\n`
+      + au.problems.map(p=>"· "+p.msg).join("\n")
+      + `\n\n通常表示這幾筆不是真的「尺寸/顏色互換」，建議改成盤損/盤盈或盤點錯誤。\n仍要匯出嗎？`)) return;
+  const missPhoto=LINES.filter(l=>PHOTO_REASONS.includes(l.reason)&&!l.photos.length);
+  if(missPhoto.length && !confirm(`有 ${missPhoto.length} 筆「漏盤/多盤」尚未附照片，仍要匯出嗎？\n（建議補齊同貨號所有數量的照片）`)) return;
+
+  const code=(store.match(/^[A-Za-z]+\d+|^DX/)||[store])[0];
+  // 1) 彙總 JSON
+  const out={
+    schema:"stocktake-variance/v1",
+    store, store_code:code, stocktake_date:stdate,
+    exported_at:new Date().toISOString(),
+    total_lines:LINES.length,
+    net_var_qty:LINES.reduce((s,l)=>s+l.varq,0),
+    qty_summary:(()=>{const q=qtyStats();return{
+      raw_var_qty:q.raw, gain_qty:q.gain, loss_qty:q.loss, actual_var_qty:q.net,
+      miscount_qty:q.qMis, offset_qty:q.qOff, other_qty:q.qOther,
+      sys_qty:LINES.reduce((s,l)=>s+l.soh,0), count_qty:LINES.reduce((s,l)=>s+l.stk,0)};})(),
+    lines:LINES.map(l=>({
+      no:l.no,barcode:l.barcode,code:l.code,desc:l.desc,size:l.size,color:l.color,
+      soh:l.soh,stk:l.stk,var_qty:l.varq,
+      reason:l.reason,note:l.note,offset:l.offset,photos:l.photos
+    }))
+  };
+  dl(new Blob([JSON.stringify(out)],{type:"application/json"}), `盤差_${code}_${stdate}.json`);
+  // 2) 盤差報告 → 直接叫出列印視窗，店上選「另存為 PDF」
+  LAST={store,stdate,code};
+  document.getElementById("pdfBtn").style.display="";
+  setTimeout(()=>{
+    alert("① 盤差_"+code+"_"+stdate+".json 已下載。\n\n"
+      + "② 按「確定」後會跳出列印視窗：\n　目的地請選【另存為 PDF】→ 按「儲存」\n　（檔名預設為 盤差報告_"+code+"_"+stdate+".pdf）\n\n"
+      + "完成後請把 JSON ＋ PDF 兩個檔 E-mail 回傳給 Logistics（Silvia）。");
+    printReport();
+  }, 400);
+});
+// 盤差報告：放進隱藏 iframe 列印（文字可搜尋、表格跨頁接續）
+let LAST=null;
+function printReport(){
+  if(!LAST) return;
+  const name=`盤差報告_${LAST.code}_${LAST.stdate}`;
+  const old=document.getElementById("rptFrame"); if(old) old.remove();
+  const fr=document.createElement("iframe");
+  fr.id="rptFrame";
+  fr.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+  fr.onload=()=>{
+    const t0=document.title;
+    document.title=name;                       // 存 PDF 的預設檔名
+    setTimeout(()=>{ fr.contentWindow.focus(); fr.contentWindow.print(); document.title=t0; }, 300);
+  };
+  fr.srcdoc=buildReport(LAST.store,LAST.stdate,LAST.code);
+  document.body.appendChild(fr);
+}
+document.getElementById("pdfBtn").addEventListener("click",printReport);
+
+// default date = today
+document.getElementById("stdate").valueAsDate=new Date();
+</script>
+</body>
+</html>
