@@ -171,26 +171,38 @@ main{max-width:1180px;margin:0 auto;padding:16px 22px}
       <label>店櫃</label>
       <select id="store">
         <option value="">— 請選擇店櫃 —</option>
-        <option>T01 MLB 忠孝旗艦店</option>
-        <option>T02 MLB 南西新光3館</option>
-        <option>T03 MLB 台北101</option>
-        <option>T06 MLB 台中中友</option>
-        <option>T08 MLB 漢神巨蛋</option>
-        <option>T10 MLB 板橋大遠百</option>
-        <option>T11 MLB 台南南紡</option>
-        <option>T12 MLB 台茂購物中心</option>
-        <option>T13 MLB 台南新光三越</option>
-        <option>T14 MLB 中壢大江</option>
-        <option>T17 LALAPORT 南港</option>
-        <option>T18 LALAPORT 台中</option>
-        <option>T19 MLB 漢神洲際</option>
-        <option>TU1 MLB 台中三井</option>
-        <option>TU2 MLB 林口三井</option>
-        <option>TU3 MLB 華泰名品城</option>
-        <option>D01 DX 新光A11</option>
-        <option>D03 DX 台中新光三越</option>
-        <option>D04 DX 遠東GARDEN CITY</option>
-        <option>D05 DX 漢神洲際</option>
+        <!-- 店號與盤點日期依「Stock Take Dec 2026.xlsx」STORE 分頁(2026-11-09 更新);
+             T02 已關店不列;D06 / DU1 店號取自 Store 主檔(Excel 上未寫店號)。
+             選店時依 data-date 自動帶入盤點日期。 -->
+        <optgroup label="12/01（二）">
+          <option data-date="2026-12-01">T01 MLB 忠孝旗艦店</option>
+          <option data-date="2026-12-01">T12 MLB 台茂購物中心</option>
+          <option data-date="2026-12-01">T13 MLB 台南新光三越</option>
+          <option data-date="2026-12-01">T17 LALAPORT 南港</option>
+          <option data-date="2026-12-01">D06 DX 台茂購物中心</option>
+        </optgroup>
+        <optgroup label="12/02（三）">
+          <option data-date="2026-12-02">T03 MLB 台北101</option>
+          <option data-date="2026-12-02">T08 MLB 漢神巨蛋</option>
+          <option data-date="2026-12-02">T11 MLB 台南南紡</option>
+          <option data-date="2026-12-02">T18 LALAPORT 台中</option>
+          <option data-date="2026-12-02">D03 DX 台中新光三越</option>
+        </optgroup>
+        <optgroup label="12/03（四）">
+          <option data-date="2026-12-03">T10 MLB 板橋大遠百</option>
+          <option data-date="2026-12-03">T19 MLB 漢神洲際</option>
+          <option data-date="2026-12-03">TU3 MLB 華泰名品城</option>
+          <option data-date="2026-12-03">D05 DX 漢神洲際</option>
+        </optgroup>
+        <optgroup label="12/04（五）">
+          <option data-date="2026-12-04">T06 MLB 台中中友</option>
+          <option data-date="2026-12-04">T14 MLB 中壢大江</option>
+          <option data-date="2026-12-04">TU1 MLB 台中三井</option>
+          <option data-date="2026-12-04">TU2 MLB 林口三井</option>
+          <option data-date="2026-12-04">D01 DX 新光A11</option>
+          <option data-date="2026-12-04">D04 DX 遠東GARDEN CITY</option>
+          <option data-date="2026-12-04">DU1 DX 台中三井</option>
+        </optgroup>
         <option value="__other__">其他（自行輸入）</option>
       </select>
     </div>
@@ -214,7 +226,7 @@ main{max-width:1180px;margin:0 auto;padding:16px 22px}
   <div class="help">
     <b>使用步驟</b>
     <ol>
-      <li>選擇「店櫃」與「盤點日期」。</li>
+      <li>選擇「店櫃」，「盤點日期」會自動帶入該店預定的盤點日（如實際日期不同可自行修改）。</li>
       <li>上傳盤點公司提供的 <b>Variance Report by Barcode</b>（CSV）— 系統會自動列出所有差異（VAR≠0）品項。</li>
       <li>逐筆選擇<b>差異原因</b>；選「其他」需自行填寫原因。<b>漏盤 / 多盤</b>請務必<b>附上照片</b>（同貨號所有數量）。</li>
       <li>原因會依差異正負自動限制：<b>確定短少 / 漏盤</b>只能選在<b>負差異</b>，<b>確定有多 / 多盤</b>只能選在<b>正差異</b>（不符的選項會鎖住）。</li>
@@ -568,6 +580,9 @@ function resizeImg(file, cb){
 // ---------- events ----------
 document.getElementById("store").addEventListener("change",e=>{
   document.getElementById("storeOtherWrap").style.display = e.target.value==="__other__"?"flex":"none";
+  // 選店時自動帶入該店的預定盤點日期(仍可手動改)
+  const d=e.target.selectedOptions[0]&&e.target.selectedOptions[0].dataset.date;
+  if(d) document.getElementById("stdate").value=d;
 });
 const drop=document.getElementById("drop"), fileInput=document.getElementById("file");
 ["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
