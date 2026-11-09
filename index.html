@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLB TW 年末盤點作業 · 店櫃指南</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --panel2:#1c232d; --line:#2a313c;
+    --ink:#e8edf3; --sub:#9aa7b6; --mut:#6b7887;
+    --blue:#2f6bff; --blue2:#4d84ff; --red:#ff5a5f; --amber:#ffb020; --green:#2ec76a;
+    --chip:#222b36;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,-apple-system,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.6; padding-bottom:60px;
+  }
+  a{color:inherit;text-decoration:none}
+
+  /* header */
+  header{
+    background:linear-gradient(135deg,#0b0e13 0%,#141b28 60%,#1a2740 100%);
+    border-bottom:1px solid var(--line); padding:28px 20px 22px;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  .brand{font-weight:800;letter-spacing:2px;font-size:14px;color:var(--sub)}
+  h1{font-size:26px;font-weight:800;margin:6px 0 4px;letter-spacing:.5px}
+  .sub{color:var(--sub);font-size:14px}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .pill{background:var(--chip);border:1px solid var(--line);border-radius:999px;
+    padding:7px 14px;font-size:13px;color:var(--ink)}
+  .pill b{color:var(--blue2)}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:50;background:rgba(14,17,22,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .navin{max-width:1080px;margin:0 auto;display:flex;gap:6px;overflow-x:auto;padding:10px 14px}
+  .navin::-webkit-scrollbar{display:none}
+  .navin a{white-space:nowrap;font-size:13.5px;color:var(--sub);padding:7px 13px;
+    border-radius:8px;border:1px solid transparent}
+  .navin a:hover{color:var(--ink);background:var(--panel)}
+
+  main{max-width:1080px;margin:0 auto;padding:26px 20px}
+  section{margin-bottom:40px;scroll-margin-top:64px}
+  .sec-h{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .sec-h .no{width:28px;height:28px;border-radius:8px;background:var(--blue);
+    display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff}
+  .sec-h h2{font-size:20px;font-weight:800}
+  .sec-h .cap{color:var(--mut);font-size:13px;margin-left:auto}
+
+  /* overview cards */
+  .grid{display:grid;gap:14px}
+  .g-ov{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .card .lab{font-size:12.5px;color:var(--mut);letter-spacing:.5px}
+  .card .val{font-size:20px;font-weight:800;margin-top:5px}
+  .card .val.lg{font-size:26px;color:var(--blue2)}
+  .card .note{font-size:12.5px;color:var(--sub);margin-top:4px}
+
+  /* alert banner */
+  .alert{display:flex;gap:12px;background:linear-gradient(90deg,rgba(255,90,95,.14),rgba(255,90,95,.04));
+    border:1px solid rgba(255,90,95,.35);border-radius:14px;padding:14px 16px;margin-bottom:22px}
+  .alert .ic{font-size:20px}
+  .alert b{color:var(--red)}
+
+  /* timeline / deadlines */
+  .dl{display:grid;gap:0;border-left:2px solid var(--line);margin-left:8px}
+  .dl .row{position:relative;padding:12px 0 12px 22px}
+  .dl .row::before{content:"";position:absolute;left:-7px;top:17px;width:12px;height:12px;
+    border-radius:50%;background:var(--panel);border:2px solid var(--blue)}
+  .dl .row.stop::before{border-color:var(--red)}
+  .dl .row.warn::before{border-color:var(--amber)}
+  .dl .row.done::before{border-color:var(--green)}
+  .dl .d{font-weight:800;font-size:14px}
+  .dl .d .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:2px}
+  .tag.r{background:rgba(255,90,95,.18);color:#ff8a8e}
+  .tag.a{background:rgba(255,176,32,.18);color:#ffcf6b}
+  .tag.g{background:rgba(46,199,106,.18);color:#6fe0a0}
+  .tag.b{background:rgba(47,107,255,.2);color:#8fb0ff}
+  .dl .t{color:var(--sub);font-size:13.5px;margin-top:2px}
+
+  /* gantt (STORE 作業時程總表) */
+  .subh{font-size:14px;font-weight:800;color:var(--sub);margin:26px 0 12px;
+    display:flex;align-items:center;gap:8px}
+  .subh::before{content:"";width:4px;height:16px;background:var(--blue);border-radius:2px}
+  .gantt-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+  .gantt-scroll::-webkit-scrollbar{height:8px}
+  .gantt-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  .gantt{display:grid;grid-template-columns:58px 96px repeat(23,minmax(40px,1fr));
+    min-width:900px;position:relative}
+  .gh{padding:8px 4px;font-size:11.5px;font-weight:700;color:var(--sub);
+    border-bottom:1px solid var(--line);text-align:center;background:var(--panel2)}
+  .gh-blk,.gh-act{position:sticky;left:0;z-index:6;border-right:1px solid var(--line)}
+  .gh-blk{left:0} .gh-act{left:58px}
+  .gd{display:flex;flex-direction:column;line-height:1.25}
+  .gd .dd{font-size:11px;color:var(--ink)} .gd .dw{font-size:10px;color:var(--mut)}
+  .gd.wknd{background:#1a2130} .gd.wknd .dw{color:var(--blue2)}
+  .gcol{border-right:1px solid rgba(42,49,60,.6)}
+  .gcol.wknd{background:rgba(47,107,255,.05)}
+  .glab{display:flex;align-items:center;justify-content:center;text-align:center;
+    font-size:12px;padding:6px 4px;border-bottom:1px solid var(--line);
+    border-right:1px solid var(--line);background:var(--panel2);position:sticky;z-index:5}
+  .gblk{left:0;font-weight:800;color:var(--ink)}
+  .gact{left:58px;color:var(--sub);font-weight:600;line-height:1.2}
+  .gbar{margin:5px 3px;border-radius:7px;font-size:9.5px;font-weight:700;color:#fff;
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    padding:4px 3px;line-height:1.12;z-index:2;min-height:26px;
+    white-space:normal;overflow-wrap:break-word;word-break:break-word;hyphens:auto}
+  .b-stop{background:linear-gradient(90deg,#ff5a5f,#e0484d)}
+  .b-last{background:linear-gradient(90deg,#ffb020,#f0991a);color:#2a1a00}
+  .b-count{background:linear-gradient(90deg,#2f6bff,#4d84ff)}
+  .b-back{background:linear-gradient(90deg,#2ec76a,#25ab5a)}
+  .gleg{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;align-items:center}
+  .gleg .lg{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--sub)}
+  .gleg .sw{width:16px;height:12px;border-radius:3px;display:inline-block}
+  .gleg .note{color:var(--mut)}
+  @media(max-width:640px){.gantt{min-width:820px}}
+
+  /* schedule by date */
+  .days{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .day{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .day .top{background:var(--panel2);padding:12px 16px;border-bottom:1px solid var(--line);
+    display:flex;align-items:baseline;gap:8px}
+  .day .top .dt{font-size:18px;font-weight:800}
+  .day .top .wd{font-size:13px;color:var(--sub)}
+  .day .top .cnt{margin-left:auto;font-size:12px;color:var(--mut)}
+  .day ul{list-style:none;padding:8px 10px}
+  .day li{display:flex;align-items:center;gap:10px;padding:8px 8px;border-radius:8px}
+  .day li:hover{background:var(--panel2)}
+  .code{font-weight:800;font-size:12.5px;min-width:40px;text-align:center;
+    padding:3px 6px;border-radius:6px;background:var(--chip);border:1px solid var(--line)}
+  .code.dx{color:#ffcf6b;border-color:rgba(255,176,32,.4)}
+  .code.mlb{color:#8fb0ff}
+  .nm{font-size:14px}
+  .badge{margin-left:auto;font-size:11px;color:var(--mut);white-space:nowrap}
+
+  /* scope two-col */
+  .two{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .box h3{font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .box.yes h3{color:var(--green)} .box.no h3{color:var(--red)}
+  .box ul{list-style:none} .box li{padding:5px 0;font-size:14px;color:var(--sub);
+    padding-left:20px;position:relative}
+  .box.yes li::before{content:"✔";position:absolute;left:0;color:var(--green)}
+  .box.no li::before{content:"✕";position:absolute;left:0;color:var(--red)}
+
+  /* checklist */
+  .chk{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+  .chk .col{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .chk .col h3{font-size:14.5px;margin-bottom:10px;color:var(--blue2)}
+  .chk ol{padding-left:20px} .chk li{font-size:13.5px;color:var(--sub);padding:4px 0}
+  .callout{display:flex;gap:10px;align-items:center;
+    background:linear-gradient(90deg,rgba(255,90,95,.18),rgba(255,176,32,.1));
+    border:1px solid rgba(255,90,95,.5);border-radius:12px;padding:14px 16px;
+    box-shadow:0 0 0 3px rgba(255,90,95,.07)}
+  .callout .cico{font-size:22px}
+  .callout div{font-size:15px;font-weight:700;color:var(--ink)}
+  .callout b{color:var(--red)}
+
+  /* SOP steps */
+  .steps{display:grid;gap:14px}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .step summary{cursor:pointer;list-style:none;padding:16px 18px;display:flex;align-items:center;gap:14px}
+  .step summary::-webkit-details-marker{display:none}
+  .step .sn{width:34px;height:34px;border-radius:10px;background:var(--blue);color:#fff;
+    display:grid;place-items:center;font-weight:800;flex-shrink:0}
+  .step .st{font-weight:800;font-size:15.5px}
+  .step .ss{font-size:12.5px;color:var(--mut);margin-top:1px}
+  .step .arw{margin-left:auto;color:var(--mut);transition:transform .2s}
+  .step[open] .arw{transform:rotate(90deg)}
+  .step .body{padding:2px 20px 18px 66px}
+  .step .body h4{font-size:13.5px;color:var(--blue2);margin:12px 0 6px}
+  .step .body ul{padding-left:18px} .step .body li{font-size:13.5px;color:var(--sub);padding:3px 0}
+  .step .body b{color:var(--ink)}
+  .hl{color:var(--amber);font-weight:700}
+
+  footer{max-width:1080px;margin:0 auto;padding:20px;border-top:1px solid var(--line);
+    color:var(--mut);font-size:12.5px;text-align:center}
+
+  @media(max-width:640px){
+    h1{font-size:21px} .two{grid-template-columns:1fr}
+    .step .body{padding-left:20px} .card .val.lg{font-size:22px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">MLB · RETAIL OPERATION</div>
+    <h1>2026 年末盤點作業 · 店櫃指南</h1>
+    <div class="sub">盤點期間 12/01（二）– 12/04（五）　盤點廠商：愛捷是 AJIS</div>
+    <div class="meta">
+      <span class="pill">初盤 <b>11/30 – 12/03</b></span>
+      <span class="pill">複盤 <b>12/01 – 12/04</b></span>
+      <span class="pill">AJIS 到場 <b>每日 08:00</b></span>
+      <span class="pill">窗口 <b>Silvia（Logistics）</b></span>
+      <span class="pill">回報 <b>Teams 盤點群組</b></span>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="navin">
+    <a href="#overview">總覽</a>
+    <a href="#deadlines">關鍵日期</a>
+    <a href="#schedule">各店日程</a>
+    <a href="#scope">盤點範圍</a>
+    <a href="#prep">事前準備</a>
+    <a href="#sop">作業流程</a>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ALERT -->
+  <div class="alert">
+    <div class="ic">⚠️</div>
+    <div>
+      <b>三個最重要的截止日：</b>
+      退貨回倉 <b>11/20（17:00 前完成轉出）</b>、11/21 起禁止退貨回倉；
+      轉調貨 <b>11/26 寄出 / 11/27 完成收貨</b>，11/27 起禁止調轉貨。
+      盤點後<b>務必等公司通知</b>才能開始調轉貨、退倉。
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="sec-h"><span class="no">1</span><h2>盤點總覽</h2></div>
+    <div class="grid g-ov">
+      <div class="card"><div class="lab">盤點期間</div><div class="val lg">12/01 – 12/04</div><div class="note">四天 · 每日早上 08:00 開始</div></div>
+      <div class="card"><div class="lab">盤點廠商</div><div class="val">愛捷是 AJIS</div><div class="note">每店派員 2 名以上</div></div>
+      <div class="card"><div class="lab">盤點方式</div><div class="val">全盤</div><div class="note">商品＋贈品要盤</div></div>
+      <div class="card"><div class="lab">盤點據點</div><div class="val">22 個店櫃</div><div class="note">MLB＋DX</div></div>
+      <div class="card"><div class="lab">當日班表</div><div class="val">2 人以上</div><div class="note">早班需安排足夠人力</div></div>
+      <div class="card"><div class="lab">結果回報</div><div class="val">當天完成</div><div class="note">盤差原因報告當天提供</div></div>
+    </div>
+  </section>
+
+  <!-- DEADLINES -->
+  <section id="deadlines">
+    <div class="sec-h"><span class="no">2</span><h2>關鍵日期與截止時點</h2><span class="cap">門市 · 退倉 · 調轉貨</span></div>
+    <div class="dl">
+      <div class="row warn"><div class="d">11/06<span class="tag a">最晚</span></div><div class="t">大量退倉貨物最晚寄出</div></div>
+      <div class="row stop"><div class="d">11/20<span class="tag r">退貨回倉最後一天</span></div><div class="t">所有店退回倉貨於今日前寄出，並於 <b>17:00 前</b>完成轉出</div></div>
+      <div class="row stop"><div class="d">11/21 起<span class="tag r">禁止</span></div><div class="t">禁止退貨回倉</div></div>
+      <div class="row warn"><div class="d">11/26<span class="tag a">最後一天</span></div><div class="t">所有轉調貨於今日前寄出</div></div>
+      <div class="row warn"><div class="d">11/27<span class="tag a">收貨截止</span></div><div class="t">完成所有轉調貨收貨，確認系統中所有轉貨皆已收到</div></div>
+      <div class="row stop"><div class="d">11/27 起<span class="tag r">禁止</span></div><div class="t">所有門店禁止調轉貨</div></div>
+      <div class="row"><div class="d">11/30 – 12/03<span class="tag b">初盤</span></div><div class="t">店櫃手盤（複盤前一日打烊後進行）</div></div>
+      <div class="row"><div class="d">12/01 – 12/04<span class="tag b">複盤</span></div><div class="t">AJIS 每日 08:00 到場掃描</div></div>
+      <div class="row done"><div class="d">12/04<span class="tag g">預定完成</span></div><div class="t">盤點作業預定完成</div></div>
+      <div class="row done"><div class="d">通知後<span class="tag g">恢復</span></div><div class="t"><b>務必等公司（Logistics）發信通知</b>，才可開始調轉貨、退倉回倉</div></div>
+    </div>
+
+    <div class="subh">年末盤點作業時程總表（STORE）　11/20（五）— 12/12（六）</div>
+    <div class="gantt-scroll">
+      <div class="gantt">
+        <div class="gh gh-blk">區塊</div>
+        <div class="gh gh-act">作業項目</div>
+        <div class="gh gd"><span class="dd">11/20</span><span class="dw">五</span></div>
+        <div class="gh gd wknd"><span class="dd">11/21</span><span class="dw">六</span></div>
+        <div class="gh gd wknd"><span class="dd">11/22</span><span class="dw">日</span></div>
+        <div class="gh gd"><span class="dd">11/23</span><span class="dw">一</span></div>
+        <div class="gh gd"><span class="dd">11/24</span><span class="dw">二</span></div>
+        <div class="gh gd"><span class="dd">11/25</span><span class="dw">三</span></div>
+        <div class="gh gd"><span class="dd">11/26</span><span class="dw">四</span></div>
+        <div class="gh gd"><span class="dd">11/27</span><span class="dw">五</span></div>
+        <div class="gh gd wknd"><span class="dd">11/28</span><span class="dw">六</span></div>
+        <div class="gh gd wknd"><span class="dd">11/29</span><span class="dw">日</span></div>
+        <div class="gh gd"><span class="dd">11/30</span><span class="dw">一</span></div>
+        <div class="gh gd"><span class="dd">12/1</span><span class="dw">二</span></div>
+        <div class="gh gd"><span class="dd">12/2</span><span class="dw">三</span></div>
+        <div class="gh gd"><span class="dd">12/3</span><span class="dw">四</span></div>
+        <div class="gh gd"><span class="dd">12/4</span><span class="dw">五</span></div>
+        <div class="gh gd wknd"><span class="dd">12/5</span><span class="dw">六</span></div>
+        <div class="gh gd wknd"><span class="dd">12/6</span><span class="dw">日</span></div>
+        <div class="gh gd"><span class="dd">12/7</span><span class="dw">一</span></div>
+        <div class="gh gd"><span class="dd">12/8</span><span class="dw">二</span></div>
+        <div class="gh gd"><span class="dd">12/9</span><span class="dw">三</span></div>
+        <div class="gh gd"><span class="dd">12/10</span><span class="dw">四</span></div>
+        <div class="gh gd"><span class="dd">12/11</span><span class="dw">五</span></div>
+        <div class="gh gd wknd"><span class="dd">12/12</span><span class="dw">六</span></div>
+        <div class="gcol" style="grid-column:3;grid-row:2/span 7"></div>
+        <div class="gcol wknd" style="grid-column:4;grid-row:2/span 7"></div>
+        <div class="gcol wknd" style="grid-column:5;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:6;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:7;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:8;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:9;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:10;grid-row:2/span 7"></div>
+        <div class="gcol wknd" style="grid-column:11;grid-row:2/span 7"></div>
+        <div class="gcol wknd" style="grid-column:12;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:13;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:14;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:15;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:16;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:17;grid-row:2/span 7"></div>
+        <div class="gcol wknd" style="grid-column:18;grid-row:2/span 7"></div>
+        <div class="gcol wknd" style="grid-column:19;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:20;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:21;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:22;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:23;grid-row:2/span 7"></div>
+        <div class="gcol" style="grid-column:24;grid-row:2/span 7"></div>
+        <div class="gcol wknd" style="grid-column:25;grid-row:2/span 7"></div>
+        <div class="glab gblk" style="grid-column:1;grid-row:2/span 2">倉庫</div>
+        <div class="glab gblk" style="grid-column:1;grid-row:4/span 2">門市</div>
+        <div class="glab gblk" style="grid-column:1;grid-row:6/span 3">AJIS &amp; STORE</div>
+        <div class="glab gact" style="grid-column:2;grid-row:2">出貨 / 補貨</div>
+        <div class="glab gact" style="grid-column:2;grid-row:3">DC 盤點</div>
+        <div class="glab gact" style="grid-column:2;grid-row:4">退貨回倉</div>
+        <div class="glab gact" style="grid-column:2;grid-row:5">轉調貨</div>
+        <div class="glab gact" style="grid-column:2;grid-row:6">AJIS 派員盤點</div>
+        <div class="glab gact" style="grid-column:2;grid-row:7">STORE 初盤</div>
+        <div class="glab gact" style="grid-column:2;grid-row:8">STORE 複盤</div>
+        <div class="gbar b-back" style="grid-column:17;grid-row:4/span 2">通知後恢復</div>
+        <div class="gbar b-last" style="grid-column:10/span 1;grid-row:2">最後一天</div>
+        <div class="gbar b-stop" style="grid-column:13/span 8;grid-row:2">停止</div>
+        <div class="gbar b-back" style="grid-column:21/span 1;grid-row:2">恢復</div>
+        <div class="gbar b-count" style="grid-column:11/span 1;grid-row:3">DC 盤點</div>
+        <div class="gbar b-count" style="grid-column:13/span 4;grid-row:3">DC 盤點</div>
+        <div class="gbar b-count" style="grid-column:17/span 2;grid-row:3">EC 盤點</div>
+        <div class="gbar b-count" style="grid-column:20/span 1;grid-row:3">會計師抽盤</div>
+        <div class="gbar b-last" style="grid-column:3/span 1;grid-row:4">最後一天</div>
+        <div class="gbar b-stop" style="grid-column:4/span 13;grid-row:4">各店停止退貨回倉</div>
+        <div class="gbar b-last" style="grid-column:9/span 1;grid-row:5">最後一天</div>
+        <div class="gbar b-stop" style="grid-column:10/span 7;grid-row:5">停止</div>
+        <div class="gbar b-count" style="grid-column:14/span 4;grid-row:6">每日 8:00 前往各店盤點</div>
+        <div class="gbar b-count" style="grid-column:13/span 4;grid-row:7">STORE 初盤</div>
+        <div class="gbar b-last" style="grid-column:13/span 1;grid-row:8">完成所有收貨</div>
+        <div class="gbar b-count" style="grid-column:14/span 4;grid-row:8">STORE 複盤</div>
+      </div>
+    </div>
+    <div class="gleg">
+      <span class="lg"><i class="sw b-stop"></i>停止／禁止</span>
+      <span class="lg"><i class="sw b-last"></i>截止／最後</span>
+      <span class="lg"><i class="sw b-count"></i>盤點作業</span>
+      <span class="lg"><i class="sw b-back"></i>恢復正常</span>
+      <span class="lg note">＊大量退倉最晚 11/6 寄出</span>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section id="schedule">
+    <div class="sec-h"><span class="no">3</span><h2>各店盤點日程</h2><span class="cap">AJIS 每日 08:00 到場</span></div>
+    <div class="days">
+
+      <div class="day">
+        <div class="top"><span class="dt">12/01</span><span class="wd">週二</span><span class="cnt">5 店</span></div>
+        <ul>
+          <li><span class="code mlb">T01</span><span class="nm">忠孝旗艦店</span></li>
+          <li><span class="code mlb">T12</span><span class="nm">台茂購物中心</span><span class="badge">與 T14 排開</span></li>
+          <li><span class="code mlb">T13</span><span class="nm">台南新光三越</span></li>
+          <li><span class="code mlb">T17</span><span class="nm">LALAPORT 南港</span></li>
+          <li><span class="code dx">D06</span><span class="nm">DX 桃園台茂</span><span class="badge">新開店</span></li>
+        </ul>
+      </div>
+
+      <div class="day">
+        <div class="top"><span class="dt">12/02</span><span class="wd">週三</span><span class="cnt">5 店</span></div>
+        <ul>
+          <li><span class="code mlb">T03</span><span class="nm">台北 101</span></li>
+          <li><span class="code mlb">T08</span><span class="nm">漢神巨蛋</span></li>
+          <li><span class="code mlb">T11</span><span class="nm">台南南紡</span></li>
+          <li><span class="code mlb">T18</span><span class="nm">LALAPORT 台中</span></li>
+          <li><span class="code dx">D03</span><span class="nm">DX 台中新光三越</span></li>
+        </ul>
+      </div>
+
+      <div class="day">
+        <div class="top"><span class="dt">12/03</span><span class="wd">週四</span><span class="cnt">4 店</span></div>
+        <ul>
+          <li><span class="code mlb">T10</span><span class="nm">板橋大遠百</span></li>
+          <li><span class="code mlb">T19</span><span class="nm">漢神洲際</span><span class="badge">新開店</span></li>
+          <li><span class="code mlb">TU3</span><span class="nm">華泰名品城</span></li>
+          <li><span class="code dx">D05</span><span class="nm">DX 漢神洲際</span><span class="badge">新開店</span></li>
+        </ul>
+      </div>
+
+      <div class="day">
+        <div class="top"><span class="dt">12/04</span><span class="wd">週五</span><span class="cnt">7 店</span></div>
+        <ul>
+          <li><span class="code mlb">T06</span><span class="nm">台中中友</span></li>
+          <li><span class="code mlb">T14</span><span class="nm">中壢大江</span><span class="badge">與 T12 排開</span></li>
+          <li><span class="code mlb">TU1</span><span class="nm">台中三井</span></li>
+          <li><span class="code mlb">TU2</span><span class="nm">林口三井</span></li>
+          <li><span class="code dx">D01</span><span class="nm">DX 新光 A11</span></li>
+          <li><span class="code dx">D04</span><span class="nm">DX 遠東 GARDEN CITY</span></li>
+          <li><span class="code dx">DU1</span><span class="nm">DX 台中三井</span><span class="badge">年底前開幕</span></li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SCOPE -->
+  <section id="scope">
+    <div class="sec-h"><span class="no">4</span><h2>盤點範圍與方式</h2><span class="cap">採全盤</span></div>
+    <div class="two">
+      <div class="box yes">
+        <h3>✅ 要盤</h3>
+        <ul>
+          <li>所有商品</li>
+          <li>贈品</li>
+          <li>瑕疵區商品</li>
+          <li>客訂保留區（未結帳皆要盤）</li>
+          <li>模特兒身上的衣服、包包、配件</li>
+          <li>外借商品</li>
+        </ul>
+      </div>
+      <div class="box no">
+        <h3>⛔ 不盤</h3>
+        <ul>
+          <li>購物袋</li>
+          <li>陳列道具等非商品</li>
+          <li>已結帳區</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PREP -->
+  <section id="prep">
+    <div class="sec-h"><span class="no">5</span><h2>事前準備清單</h2></div>
+    <div class="chk">
+      <div class="col">
+        <h3>A · 盤點前準備</h3>
+        <ol>
+          <li>確認所有商品均有價標條碼</li>
+          <li>商品分區；無帳商品與空盒集中放置並標示清楚</li>
+          <li>空箱、空盒撤離盤點區域</li>
+          <li>吊牌翻出或朝外；鞋類吊牌拉出鞋盒外</li>
+          <li>標示模特兒身上的件數</li>
+          <li>複數件衣架放在該桿最前方</li>
+          <li>帽牆最上方兩層帽子撤下</li>
+        </ol>
+      </div>
+      <div class="col">
+        <h3>B · 盤點前一天（初盤）</h3>
+        <ol>
+          <li>確認各貨架儲區均已貼上儲區標籤</li>
+          <li>倉庫區商品價標先翻出，加速盤點</li>
+          <li>確認各儲區內含數量與全店總數量</li>
+          <li>與公司系統庫存總數核對</li>
+        </ol>
+      </div>
+      <div class="col">
+        <h3>C · 盤點當天</h3>
+        <ol>
+          <li>08:00 開始，預定中午前結束（先確認是否已向百貨申請進場）</li>
+          <li>每一儲區盤完後<b>立即覆核</b>件數（掃描數＝清點數）</li>
+          <li>整店盤完後確認最終數字，參考系統庫存避免漏盤</li>
+        </ol>
+      </div>
+      <div class="col">
+        <h3>D · 盤點結束後</h3>
+        <div class="callout">
+          <span class="cico">📌</span>
+          <div><b>務必當天</b>提供<b>盤差原因報告</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOP -->
+  <section id="sop">
+    <div class="sec-h"><span class="no">6</span><h2>盤點作業流程（五階段）</h2><span class="cap">點擊展開細節</span></div>
+    <div class="steps">
+
+      <details class="step" open>
+        <summary><span class="sn">1</span><div><div class="st">盤點事前準備</div><div class="ss">平面圖 · 區域碼 · 轉調單收檔 · 查庫存</div></div><span class="arw">▶</span></summary>
+        <div class="body">
+          <h4>百貨申請及相關事項</h4>
+          <ul>
+            <li>盤點公司安排 2 名以上到場；當日早班也需 2 人以上</li>
+            <li>待 Silvia 發信通知人員名單與百貨提早入場申請，完成後於 Teams「盤點群組」回覆；有進場單一併提供</li>
+            <li>廠商到場、報表產出、離開時，皆於 Teams「盤點群組」回覆給 Silvia</li>
+          </ul>
+          <h4>繪製櫃位平面圖</h4>
+          <ul>
+            <li>規劃區域並編制區域碼，<span class="hl">每區件數不得超過 50 件</span></li>
+            <li>標示每個字母的第一區與最後一區、共同區域，避免漏盤</li>
+            <li>配置範例：A、B 帽牆｜C、D 壁面｜E、F 中島道具｜G、H、I 倉庫｜J、K 外倉庫｜L 瑕疵、未付區、調貨</li>
+          </ul>
+          <h4>確認轉調單已收檔（轉出＋轉入）</h4>
+          <ul>
+            <li>POS 路徑：管理 &gt; 調撥 &gt; 確認調撥通知單</li>
+            <li>轉入：簽發倉庫選「所有」、接收倉庫選「自己店櫃」</li>
+            <li>轉出：簽發倉庫選「自己店櫃」、接收倉庫選「其他間店」</li>
+          </ul>
+          <h4>列印並粘貼區域碼 · 查庫存</h4>
+          <ul>
+            <li>粘貼務必用<span class="hl">無痕膠帶</span>，避免道具脫漆或殘膠</li>
+            <li>打烊前查庫存：管理 &gt; 庫存 &gt; 每個門市的貨品可用性（類型選 Accessory＋Wear）</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="sn">2</span><div><div class="st">店櫃初盤（手盤）</div><div class="ss">複盤前一日打烊後 · 填數量簽名 · 核對落差</div></div><span class="arw">▶</span></summary>
+        <div class="body">
+          <ul>
+            <li>於<b>複盤前一日打烊後</b>進行，避免銷售造成件數變動</li>
+            <li>手盤後於區域碼紙條填寫<b>數量</b>與<b>簽名</b></li>
+            <li>吊牌翻出或朝外；鞋類吊牌拉出鞋盒外</li>
+            <li>複數件衣架放在該桿最前方；留意模特兒身上的配件</li>
+            <li>各區件數填入<b>盤點數量統計表</b>，核對總庫存與 POS 庫存落差；落差大時檢視是否漏填或漏盤</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="sn">3</span><div><div class="st">盤點公司複盤</div><div class="ss">先賣場後庫存 · 逐區覆核 · 掃描＝手盤</div></div><span class="arw">▶</span></summary>
+        <div class="body">
+          <ul>
+            <li>盤點公司<b>先盤賣場、後盤庫存</b>，避免影響營業</li>
+            <li>每區盤完立即覆核（例：A01 掃描 35 件，核對紙條是否 35 件）</li>
+            <li>不一致 → 重新手盤並更新紙條；手盤正確 → 請廠商重掃。<span class="hl">掃描件數務必與手盤件數相同</span></li>
+            <li>各區複盤完成後整理商品至營業狀態（吊牌放入衣服內、庫存整理好）</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="sn">4</span><div><div class="st">盤點結果回報</div><div class="ss">當天 · Variance Report · 差異原因＋照片</div></div><span class="arw">▶</span></summary>
+        <div class="body">
+          <ul>
+            <li>盤點公司離開後方可撕下區域碼紙條，務必移除殘膠</li>
+            <li>等 Silvia 提供盤點資料，使用 <b>Variance Report by Barcode</b>，紅框處複製 → 貼至盤點差異報告，數量與金額自動帶入</li>
+            <li>查詢每件差異原因並填入；需補充者附照片（同貨號<b>所有數量</b>的照片，如未盤到、重複盤）</li>
+            <li>完成後 E-mail 給 <b>Logistics TEAM (Silvia)</b>，並 <b>cc OP TEAM (Nicole &amp; Eva)</b></li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="sn">5</span><div><div class="st">盤點完成</div><div class="ss">等通知調帳 · 查核 · 完成</div></div><span class="arw">▶</span></summary>
+        <div class="body">
+          <ul>
+            <li>待 Logistics 通知<b>可以開始轉調</b>時，才可轉帳或退倉</li>
+            <li>待通知<b>已完成調帳</b>時，務必查詢調帳是否正確；有問題<span class="hl">當日提出</span></li>
+            <li>確認無誤後，盤點作業完成 🎉</li>
+          </ul>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  MLB TW 年末盤點作業指南　·　資料來源：盤點程序規範、Stock Take Dec 2026　·　窗口：Silvia（Logistics）／ Teams 盤點群組
+</footer>
+
+</body>
+</html>
